@@ -35,12 +35,12 @@ The jar folder is to be used to store the built jar of your term-project.
 
 ## Controls to play your Game:
 
-|               | Player 1 | Player 2 |
-|---------------|----------|----------|
-|  Forward      |    w     |          |
-|  Backward     |    s     |          |
-|  Rotate left  |    a     |          |
-|  Rotate Right |    d     |          |
-|  Shoot        |          |          |
+|               |   Player 1    |    Player 2   |
+|---------------|---------------|---------------|
+|  Forward      |    w          |      UP       |
+|  Backward     |    s          |      DOWN     |
+|  Rotate left  |    a          |      LEFT     |
+|  Rotate Right |    d          |      RIGHT    |
+|  Shoot        |    space      |      ENTER    |
 
 <!-- you may add more controls if you need to. -->
