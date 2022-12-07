@@ -54,10 +54,10 @@ public class Launcher {
     }
 
     private void initUIComponents(){
+        Resources.loadResources(); // <-- calls resources
         this.mainPanel = new JPanel(); // create a new main panel
         this.startPanel = new StartMenuPanel(this); // create a new start panel
         this.gamePanel = new GameWorld(this); // create a new game panel
-        Resources.loadResources(); // <-- calls resources
         this.gamePanel.InitializeGame(); // initialize game, but DO NOT start game
         this.endPanel = new EndGamePanel(this); // create a new end game pane;
         cl = new CardLayout(); // creating a new CardLayout Panel
@@ -79,7 +79,7 @@ public class Launcher {
                 break;
             case "game":
                 // set the size of the jFrame to the expected size for the game panel
-                this.jf.setSize(GameConstants.GAME_SCREEN_WIDTH,GameConstants.GAME_SCREEN_HEIGHT);
+                this.jf.setSize(GameConstants.WORLD_WIDTH,GameConstants.WORLD_HEIGHT);
                 //start a new thread for the game to run. This will ensure our JFrame is responsive and
                 // not stuck executing the game loop.
                 (new Thread(this.gamePanel)).start();

@@ -10,12 +10,15 @@ import tankrotationexample.GameConstants;
 import tankrotationexample.Launcher;
 import tankrotationexample.Resources;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 // Jpanel is a light weight container
@@ -27,6 +30,7 @@ public class GameWorld extends JPanel implements Runnable {
     private Tank t2;
     private Launcher lf;
     private long tick = 0;
+    private List<GameObject> gameObjects = new ArrayList<>(); // used suggested fix from intellij keep an eye out
 
     /**
      * 
@@ -82,9 +86,23 @@ public class GameWorld extends JPanel implements Runnable {
      * initial state as well.
      */
     public void InitializeGame() {
-        this.world = new BufferedImage(GameConstants.GAME_SCREEN_WIDTH,
-                GameConstants.GAME_SCREEN_HEIGHT,
+        this.world = new BufferedImage(GameConstants.WORLD_WIDTH,
+                GameConstants.WORLD_HEIGHT,
                 BufferedImage.TYPE_INT_RGB);
+
+        try(BufferedReader mapReader = new BufferedReader(new InputStreamReader(GameWorld.class.getClassLoader().getResourceAsStream("maps/map1.csv")))){
+            for (int i=0; mapReader.ready(); i++){ // Let i increase until hit last i
+                String[] gameObjects = mapReader.readLine().split(",");
+                for (int j = 0; j < gameObjects.length; j++){
+                    String objectType = gameObjects[j];
+                    if(Objects.equals("0", objectType)) continue;
+                    this.gameObjects.add(GameObject.gameObjectFactory(objectType,j*30, i*30));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         t1 = new Tank(300, 300, 0, 0, (short) 0, Resources.getSprite("tank1"));
         TankControl tc1 = new TankControl(t1, KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_SPACE);
@@ -100,12 +118,14 @@ public class GameWorld extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         Graphics2D buffer = world.createGraphics();
-
         buffer.setColor(Color.black); // gets rid of trail of black floor
-        buffer.fillRect(0,0,GameConstants.GAME_SCREEN_WIDTH, GameConstants.GAME_SCREEN_HEIGHT);
+        buffer.fillRect(0,0,GameConstants.WORLD_WIDTH, GameConstants.WORLD_HEIGHT);
+
+        this.gameObjects.forEach((gObj -> gObj.drawImage(buffer)));
 
         this.t1.drawImage(buffer);
         this.t2.drawImage(buffer);
+
         g2.drawImage(world, 0, 0, null);
     }
 
