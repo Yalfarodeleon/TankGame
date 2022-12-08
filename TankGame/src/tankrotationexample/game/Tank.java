@@ -1,21 +1,28 @@
 package tankrotationexample.game;
 
 import tankrotationexample.GameConstants;
+import tankrotationexample.Resources;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author anthony-pc
  */
-public class Tank{
+public class Tank extends GameObject{
 
     private float x, screenX;
     private float y, screenY;
     private float vx;
     private float vy;
     private float angle; // where the tank is facing
+
+    private long coolDown = 2000;
+    private long timeLastShot = 0;
 
     private float R = 5; // affects the speed of the tank
     private float ROTATIONSPEED = 3.0f;
@@ -25,6 +32,8 @@ public class Tank{
     private boolean DownPressed;
     private boolean RightPressed;
     private boolean LeftPressed;
+    private boolean shootPressed;
+    List<Bullet> ammo = new ArrayList<>(50);
 
     Tank(float x, float y, float vx, float vy, float angle, BufferedImage img) {
         this.x = x;
@@ -33,7 +42,10 @@ public class Tank{
         this.vy = vy;
         this.img = img;
         this.angle = angle;
+        this.hitbox = new Rectangle((int)x,(int)y,this.img.getWidth(),this.img.getHeight());
     }
+
+
 
     void setX(float x){ this.x = x; }
 
@@ -55,6 +67,10 @@ public class Tank{
         this.LeftPressed = true;
     }
 
+    public void toggleShootPressed() {
+        this.shootPressed = true;
+    }
+
     void unToggleUpPressed() {
         this.UpPressed = false;
     }
@@ -69,6 +85,10 @@ public class Tank{
 
     void unToggleLeftPressed() {
         this.LeftPressed = false;
+    }
+
+    public void unToggleShootPressed() {
+        this.shootPressed = false;
     }
 
     void update() {
@@ -88,7 +108,22 @@ public class Tank{
             this.rotateRight();
         }
 
+        if(this.shootPressed && (this.timeLastShot + coolDown) < System.currentTimeMillis()){
+            this.timeLastShot = System.currentTimeMillis();
+            System.out.println("Tank shot a bullet");
+            Bullet b = new Bullet(setBulletStartX(),setBulletStartY(),angle, Resources.getSprite("bullet"));
+            this.ammo.add(b);
+        }
 
+        this.ammo.forEach(bullet -> bullet.update());
+
+    }
+
+    public void setCoolDown(long newCoolDown){ // bullet power up ex
+        this.coolDown = newCoolDown;
+        if(this.coolDown < 500){
+            this.coolDown = 500;
+        }
     }
 
     private int setBulletStartX() {
@@ -116,6 +151,7 @@ public class Tank{
         y -= vy;
        checkBorder();
        centerScreen();
+       this.hitbox.setLocation((int)x,(int)y);
     }
 
     private void moveForwards() {
@@ -125,6 +161,7 @@ public class Tank{
         y += vy;
         checkBorder();
         centerScreen();
+        this.hitbox.setLocation((int)x,(int)y);
     }
 
 
@@ -164,7 +201,7 @@ public class Tank{
     }
 
 
-    void drawImage(Graphics g) {
+   public void drawImage(Graphics g) {
         AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
         rotation.rotate(Math.toRadians(angle), this.img.getWidth() / 2.0, this.img.getHeight() / 2.0);
         //rotation.scale(1.3,1.3); //<-- could use this to scale tank or powerUps
@@ -172,16 +209,10 @@ public class Tank{
         g2d.drawImage(this.img, rotation, null);
         g2d.setColor(Color.RED);
         g2d.drawRect((int)x,(int)y,this.img.getWidth(), this.img.getHeight());
+        this.ammo.forEach(bullet -> bullet.drawImage(g));
 
     }
 
-    public float getX() {
-        return this.x;
-    }
-
-    public float getY() {
-        return this.y;
-    }
 
     public int getScreenX(){
         return (int)screenX;

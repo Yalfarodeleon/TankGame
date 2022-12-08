@@ -32,7 +32,7 @@ public class GameWorld extends JPanel implements Runnable {
     private Tank t2;
     private Launcher lf;
     private long tick = 0;
-    private List<GameObject> gameObjects = new ArrayList<>(); // used suggested fix from intellij keep an eye out
+    private List<GameObject> gameObjects = new ArrayList<>(500); // used suggested fix from intellij keep an eye out
 
     /**
      * 
@@ -50,6 +50,19 @@ public class GameWorld extends JPanel implements Runnable {
                 this.tick++;
                 this.t1.update(); // update tank
                 this.t2.update(); // update tank
+
+                for(int i = 0; i < this.gameObjects.size(); i++){
+                    GameObject ob1 = this.gameObjects.get(i);
+                    if(ob1 instanceof Wall) continue;
+                    for(int j = 0; j < this.gameObjects.size(); j++){
+                        if(i == j) continue;
+                        GameObject ob2 = this.gameObjects.get(j);
+                        if(ob1.getHitBox().intersects(ob2.getHitBox())){
+                            System.out.println(ob1 + "--->" + ob2);
+                        }
+                    }
+                }
+
                 this.repaint();   // redraw game
                 
                 /*
@@ -113,6 +126,9 @@ public class GameWorld extends JPanel implements Runnable {
         t2 = new Tank(800, 500, 0, 0, (short) 0, Resources.getSprite("tank2"));
         TankControl tc2 = new TankControl(t2, KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_ENTER);
         this.lf.getJf().addKeyListener(tc2);
+        this.gameObjects.add(t1);
+        this.gameObjects.add(t2);
+
     }
 
 
