@@ -13,6 +13,8 @@ import tankrotationexample.Resources;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -118,16 +120,47 @@ public class GameWorld extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         Graphics2D buffer = world.createGraphics();
-        buffer.setColor(Color.black); // gets rid of trail of black floor
-        buffer.fillRect(0,0,GameConstants.WORLD_WIDTH, GameConstants.WORLD_HEIGHT);
-
+        drawFloor(buffer);
         this.gameObjects.forEach((gObj -> gObj.drawImage(buffer)));
 
         this.t1.drawImage(buffer);
         this.t2.drawImage(buffer);
 
-        g2.drawImage(world, 0, 0, null);
+        //g2.drawImage(world, 0, 0, null);
+        drawSplitScreens(g2,world);
+        drawMiniMap(g2,world);
     }
 
+    void drawFloor(Graphics2D buffer) {
+        for (int i=0; i < GameConstants.WORLD_WIDTH; i += 320){
+            for (int j=0; j < GameConstants.WORLD_HEIGHT; j += 240){
+               buffer.drawImage(Resources.getSprite("floor"),i,j,null);
+            }
+        }
+    }
+
+    void drawMiniMap(Graphics2D g, BufferedImage world) {
+        BufferedImage mm = world.getSubimage(0,0,GameConstants.WORLD_WIDTH,GameConstants.WORLD_HEIGHT);
+        AffineTransform at = new AffineTransform();
+
+        at.translate(GameConstants.GAME_SCREEN_WIDTH/2f - (GameConstants.WORLD_WIDTH*.2f)/2f,
+                GameConstants.GAME_SCREEN_HEIGHT - (GameConstants.WORLD_HEIGHT*.2f));
+        at.scale(.2,.2);
+        g.drawImage(mm,at,null);
+    }
+
+    void drawSplitScreens(Graphics2D g, BufferedImage world){
+        BufferedImage lh = world.getSubimage(t1.getScreenX(),
+                t1.getScreenY(),
+                GameConstants.GAME_SCREEN_WIDTH/2,
+                GameConstants.GAME_SCREEN_HEIGHT);
+        BufferedImage rh = world.getSubimage(t2.getScreenX(),
+                t2.getScreenY(),
+                GameConstants.GAME_SCREEN_WIDTH/2,
+                GameConstants.GAME_SCREEN_HEIGHT);
+        g.drawImage(lh,0,0,null);
+        g.drawImage(rh,GameConstants.GAME_SCREEN_WIDTH/2,0,null);
+
+    }
 
 }

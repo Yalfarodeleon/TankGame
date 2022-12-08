@@ -11,8 +11,8 @@ import java.awt.image.BufferedImage;
  */
 public class Tank{
 
-    private float x;
-    private float y;
+    private float x, screenX;
+    private float y, screenY;
     private float vx;
     private float vy;
     private float angle; // where the tank is facing
@@ -91,6 +91,16 @@ public class Tank{
 
     }
 
+    private int setBulletStartX() {
+        float cx = 29f * (float) Math.cos(Math.toRadians(angle));
+        return (int) x + this.img.getWidth() / 2 + (int) cx -4;
+    }
+
+    private int setBulletStartY() {
+        float cy = 29f * (float) Math.sin(Math.toRadians(angle));
+        return (int) y + this.img.getHeight() / 2 + (int) cy -4;
+    }
+
     private void rotateLeft() {
         this.angle -= this.ROTATIONSPEED;
     }
@@ -105,6 +115,7 @@ public class Tank{
         x -= vx;
         y -= vy;
        checkBorder();
+       centerScreen();
     }
 
     private void moveForwards() {
@@ -113,6 +124,7 @@ public class Tank{
         x += vx;
         y += vy;
         checkBorder();
+        centerScreen();
     }
 
 
@@ -128,6 +140,21 @@ public class Tank{
         }
         if (y >= GameConstants.WORLD_HEIGHT - 80) {
             y = GameConstants.WORLD_HEIGHT - 80;
+        }
+    }
+
+    private void centerScreen() {
+        this.screenX = this.x - GameConstants.GAME_SCREEN_WIDTH / 4f;
+        this.screenY = this.y - GameConstants.GAME_SCREEN_HEIGHT / 2f;
+
+        if(this.screenX < 0) screenX =0;
+        if(this.screenY < 0) screenY =0;
+
+        if(this.screenX > GameConstants.WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH / 2f){
+            this.screenX = GameConstants.WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH / 2f;
+        }
+        if(this.screenY > GameConstants.WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT){
+            this.screenY = GameConstants.WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT;
         }
     }
 
@@ -147,4 +174,21 @@ public class Tank{
         g2d.drawRect((int)x,(int)y,this.img.getWidth(), this.img.getHeight());
 
     }
+
+    public float getX() {
+        return this.x;
+    }
+
+    public float getY() {
+        return this.y;
+    }
+
+    public int getScreenX(){
+        return (int)screenX;
+    }
+
+    public int getScreenY(){
+        return (int)screenY;
+    }
+
 }
