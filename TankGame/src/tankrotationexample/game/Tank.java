@@ -43,6 +43,7 @@ public class Tank extends GameObject{
         this.img = img;
         this.angle = angle;
         this.hitbox = new Rectangle((int)x,(int)y,this.img.getWidth(),this.img.getHeight());
+
     }
 
 
@@ -91,7 +92,7 @@ public class Tank extends GameObject{
         this.shootPressed = false;
     }
 
-    void update() {
+    void update(GameWorld gw) {
         if (this.UpPressed) {
             this.moveForwards();
         }
@@ -112,7 +113,9 @@ public class Tank extends GameObject{
             this.timeLastShot = System.currentTimeMillis();
             System.out.println("Tank shot a bullet");
             Bullet b = new Bullet(setBulletStartX(),setBulletStartY(),angle, Resources.getSprite("bullet"));
+            gw.addGameObject(b);
             this.ammo.add(b);
+            Resources.getSound("shoot").playSound();
         }
 
         this.ammo.forEach(bullet -> bullet.update());

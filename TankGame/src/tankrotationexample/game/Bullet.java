@@ -25,6 +25,7 @@ public class Bullet extends GameObject{
     void update() {
         x += Math.round(R * Math.cos(Math.toRadians(angle)));
         y += Math.round(R * Math.sin(Math.toRadians(angle)));
+        this.hitbox.setLocation((int)x,(int)y);
         checkBorder();
 
     }

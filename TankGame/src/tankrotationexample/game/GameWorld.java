@@ -27,7 +27,7 @@ import java.util.Objects;
 public class GameWorld extends JPanel implements Runnable {
 
     private BufferedImage world;
-
+    private Sound bgMusic;
     private Tank t1;
     private Tank t2;
     private Launcher lf;
@@ -45,25 +45,33 @@ public class GameWorld extends JPanel implements Runnable {
     @Override
     public void run() {
         try {
-            //this.resetGame();
+            this.resetGame();
+            bgMusic = Resources.getSound("bg");
+            bgMusic.setVolume(0.5f);
+            bgMusic.setLooping();
+            bgMusic.playSound();
             while (true) {
                 this.tick++;
-                this.t1.update(); // update tank
-                this.t2.update(); // update tank
-
-                for(int i = 0; i < this.gameObjects.size(); i++){
-                    GameObject ob1 = this.gameObjects.get(i);
-                    if(ob1 instanceof Wall) continue;
-                    for(int j = 0; j < this.gameObjects.size(); j++){
-                        if(i == j) continue;
-                        GameObject ob2 = this.gameObjects.get(j);
-                        if(ob1.getHitBox().intersects(ob2.getHitBox())){
-                            System.out.println(ob1 + "--->" + ob2);
-                        }
-                    }
-                }
-
+                this.t1.update(this); // update tank
+                this.t2.update(this); // update tank
+                this.checkCollisions();
+                this.gameObjects.removeIf(g -> g.hasCollided);
                 this.repaint();   // redraw game
+
+//                for(int i = 0; i < this.gameObjects.size(); i++){
+//                    GameObject ob1 = this.gameObjects.get(i);
+//                    if(ob1 instanceof Wall) continue;
+//                    for(int j = 0; j < this.gameObjects.size(); j++){
+//                        if(i == j) continue;
+//                        GameObject ob2 = this.gameObjects.get(j);
+//                        if(ob1.getHitBox().intersects(ob2.getHitBox())){
+//                            System.out.println(ob1 + "--->" + ob2);
+//                            Resources.getSound("powerup").playSound();
+//                        }
+//                    }
+//                }
+
+
                 
                 /*
                  * Sleep for 1000/144 ms (~6.9ms). This is done to have our 
@@ -94,6 +102,27 @@ public class GameWorld extends JPanel implements Runnable {
         this.tick = 0;
         this.t1.setX(300);
         this.t1.setY(300);
+    }
+
+    private void checkCollisions() {
+        for(int i=0; i < this.gameObjects.size(); i++){
+            GameObject ob1 = this.gameObjects.get(i);
+            if(ob1 instanceof Wall || ob1 instanceof PowerUp) continue;
+            for ( int j=0; j < this.gameObjects.size(); j++){
+                if(i == j) continue;
+                GameObject ob2 = this.gameObjects.get(j);
+                if(ob1.getHitBox().intersects(ob2.getHitBox())){
+                    if(ob2 instanceof PowerUp && !ob2.hasCollided){
+                        System.out.println("hit a powerup");
+                        Resources.getSound("powerup").playSound();
+                        ob2.hasCollided = true;
+                    }
+                    if(ob2 instanceof Bullet && !ob2.hasCollided){
+                        System.out.println("bullet");
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -178,5 +207,7 @@ public class GameWorld extends JPanel implements Runnable {
         g.drawImage(rh,GameConstants.GAME_SCREEN_WIDTH/2,0,null);
 
     }
+
+    public void addGameObject(Bullet b) { this.gameObjects.add(b);}
 
 }
