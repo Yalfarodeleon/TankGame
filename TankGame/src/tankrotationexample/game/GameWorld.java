@@ -32,10 +32,10 @@ public class GameWorld extends JPanel implements Runnable {
     private Tank t2;
     private Launcher lf;
     private long tick = 0;
-    private List<GameObject> gameObjects = new ArrayList<>(500); // used suggested fix from intellij keep an eye out
+    private List<GameObject> gameObjects = new ArrayList<>(500);
+    private List<Animation> anims = new ArrayList<>(20);
 
     /**
-     * 
      * @param lf
      */
     public GameWorld(Launcher lf) {
@@ -55,7 +55,9 @@ public class GameWorld extends JPanel implements Runnable {
                 this.t1.update(this); // update tank
                 this.t2.update(this); // update tank
                 this.checkCollisions();
+                this.anims.forEach(a -> a.update());
                 this.gameObjects.removeIf(g -> g.hasCollided);
+                this.anims.removeIf(a -> !a.isRunning);
                 this.repaint();   // redraw game
 
 //                for(int i = 0; i < this.gameObjects.size(); i++){
@@ -72,11 +74,11 @@ public class GameWorld extends JPanel implements Runnable {
 //                }
 
 
-                
+
                 /*
-                 * Sleep for 1000/144 ms (~6.9ms). This is done to have our 
-                 * loop run at a fixed rate per/sec. 
-                */
+                 * Sleep for 1000/144 ms (~6.9ms). This is done to have our
+                 * loop run at a fixed rate per/sec.
+                 */
                 Thread.sleep(1000 / 144);
 
                 /*
@@ -105,21 +107,38 @@ public class GameWorld extends JPanel implements Runnable {
     }
 
     private void checkCollisions() {
-        for(int i=0; i < this.gameObjects.size(); i++){
+        for (int i = 0; i < this.gameObjects.size(); i++) {
             GameObject ob1 = this.gameObjects.get(i);
-            if(ob1 instanceof Wall || ob1 instanceof PowerUp) continue;
-            for ( int j=0; j < this.gameObjects.size(); j++){
-                if(i == j) continue;
+            if (ob1 instanceof Wall || ob1 instanceof PowerUp) continue;
+            for (int j = 0; j < this.gameObjects.size(); j++) {
+                if (i == j) continue;
                 GameObject ob2 = this.gameObjects.get(j);
-                if(ob1.getHitBox().intersects(ob2.getHitBox())){
-                    if(ob2 instanceof PowerUp && !ob2.hasCollided){
+                if (ob1.getHitBox().intersects(ob2.getHitBox())) {
+                    if (ob2 instanceof PowerUp && !ob2.hasCollided && !(ob1 instanceof Bullet)) {
                         System.out.println("hit a powerup");
                         Resources.getSound("powerup").playSound();
                         ob2.hasCollided = true;
                     }
-                    if(ob2 instanceof Bullet && !ob2.hasCollided){
-                        System.out.println("bullet");
+                    else if(ob2 instanceof Bullet){
+                        if(ob1 instanceof Tank){
+                            if(ob1 == (Bullet)ob2){
+                                continue;
+                            }
+                        }
+                        ob2.hasCollided = true;
+                        Bullet b = (Bullet)ob2;
+                        this.anims.add(new Animation(b.x,b.y,Resources.getAnimation("shoot")));
+                        Resources.getSound("bullethit").playSound();
+                    } else if(ob2 instanceof Wall && !(ob1 instanceof Tank)){
+                        if(ob1 instanceof Bullet){
+                            ob1.hasCollided = true;
+                            Bullet b = (Bullet)ob1;
+                            this.anims.add(new Animation(b.x,b.y,Resources.getAnimation("shoot")));
+
+                        }
+                        Resources.getSound("bullethit").playSound();
                     }
+
                 }
             }
         }
@@ -134,13 +153,13 @@ public class GameWorld extends JPanel implements Runnable {
                 GameConstants.WORLD_HEIGHT,
                 BufferedImage.TYPE_INT_RGB);
 
-        try(BufferedReader mapReader = new BufferedReader(new InputStreamReader(GameWorld.class.getClassLoader().getResourceAsStream("maps/map1.csv")))){
-            for (int i=0; mapReader.ready(); i++){ // Let i increase until hit last i
+        try (BufferedReader mapReader = new BufferedReader(new InputStreamReader(GameWorld.class.getClassLoader().getResourceAsStream("maps/map1.csv")))) {
+            for (int i = 0; mapReader.ready(); i++) { // Let i increase until hit last i
                 String[] gameObjects = mapReader.readLine().split(",");
-                for (int j = 0; j < gameObjects.length; j++){
+                for (int j = 0; j < gameObjects.length; j++) {
                     String objectType = gameObjects[j];
-                    if(Objects.equals("0", objectType)) continue;
-                    this.gameObjects.add(GameObject.gameObjectFactory(objectType,j*30, i*30));
+                    if (Objects.equals("0", objectType)) continue;
+                    this.gameObjects.add(GameObject.gameObjectFactory(objectType, j * 30, i * 30));
                 }
             }
         } catch (IOException e) {
@@ -170,44 +189,49 @@ public class GameWorld extends JPanel implements Runnable {
 
         this.t1.drawImage(buffer);
         this.t2.drawImage(buffer);
-
+        this.anims.forEach(a -> a.drawImage(buffer));
         //g2.drawImage(world, 0, 0, null);
-        drawSplitScreens(g2,world);
-        drawMiniMap(g2,world);
+        drawSplitScreens(g2, world);
+        drawMiniMap(g2, world);
     }
 
     void drawFloor(Graphics2D buffer) {
-        for (int i=0; i < GameConstants.WORLD_WIDTH; i += 320){
-            for (int j=0; j < GameConstants.WORLD_HEIGHT; j += 240){
-               buffer.drawImage(Resources.getSprite("floor"),i,j,null);
+        for (int i = 0; i < GameConstants.WORLD_WIDTH; i += 320) {
+            for (int j = 0; j < GameConstants.WORLD_HEIGHT; j += 240) {
+                buffer.drawImage(Resources.getSprite("floor"), i, j, null);
             }
         }
     }
 
     void drawMiniMap(Graphics2D g, BufferedImage world) {
-        BufferedImage mm = world.getSubimage(0,0,GameConstants.WORLD_WIDTH,GameConstants.WORLD_HEIGHT);
+        BufferedImage mm = world.getSubimage(0, 0, GameConstants.WORLD_WIDTH, GameConstants.WORLD_HEIGHT);
         AffineTransform at = new AffineTransform();
 
-        at.translate(GameConstants.GAME_SCREEN_WIDTH/2f - (GameConstants.WORLD_WIDTH*.2f)/2f,
-                GameConstants.GAME_SCREEN_HEIGHT - (GameConstants.WORLD_HEIGHT*.2f));
-        at.scale(.2,.2);
-        g.drawImage(mm,at,null);
+        at.translate(GameConstants.GAME_SCREEN_WIDTH / 2f - (GameConstants.WORLD_WIDTH * .2f) / 2f,
+                GameConstants.GAME_SCREEN_HEIGHT - (GameConstants.WORLD_HEIGHT * .2f));
+        at.scale(.2, .2);
+        g.drawImage(mm, at, null);
     }
 
-    void drawSplitScreens(Graphics2D g, BufferedImage world){
+    void drawSplitScreens(Graphics2D g, BufferedImage world) {
         BufferedImage lh = world.getSubimage(t1.getScreenX(),
                 t1.getScreenY(),
-                GameConstants.GAME_SCREEN_WIDTH/2,
+                GameConstants.GAME_SCREEN_WIDTH / 2,
                 GameConstants.GAME_SCREEN_HEIGHT);
         BufferedImage rh = world.getSubimage(t2.getScreenX(),
                 t2.getScreenY(),
-                GameConstants.GAME_SCREEN_WIDTH/2,
+                GameConstants.GAME_SCREEN_WIDTH / 2,
                 GameConstants.GAME_SCREEN_HEIGHT);
-        g.drawImage(lh,0,0,null);
-        g.drawImage(rh,GameConstants.GAME_SCREEN_WIDTH/2,0,null);
+        g.drawImage(lh, 0, 0, null);
+        g.drawImage(rh, GameConstants.GAME_SCREEN_WIDTH / 2, 0, null);
 
     }
 
-    public void addGameObject(Bullet b) { this.gameObjects.add(b);}
+    public void addGameObject(Bullet b) {
+        this.gameObjects.add(b);
+    }
 
+    public void addAnimation(Animation anim) {
+        this.anims.add(anim);
+    }
 }

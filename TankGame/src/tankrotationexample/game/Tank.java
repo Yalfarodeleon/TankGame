@@ -21,7 +21,7 @@ public class Tank extends GameObject{
     private float vy;
     private float angle; // where the tank is facing
 
-    private long coolDown = 2000;
+    private long coolDown = 250;
     private long timeLastShot = 0;
 
     private float R = 5; // affects the speed of the tank
@@ -114,6 +114,7 @@ public class Tank extends GameObject{
             System.out.println("Tank shot a bullet");
             Bullet b = new Bullet(setBulletStartX(),setBulletStartY(),angle, Resources.getSprite("bullet"));
             gw.addGameObject(b);
+            gw.addAnimation(new Animation(b.x,b.y, Resources.getAnimation("collide")));
             this.ammo.add(b);
             Resources.getSound("shoot").playSound();
         }

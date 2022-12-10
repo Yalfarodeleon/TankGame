@@ -2,16 +2,12 @@ package tankrotationexample;
 
 import tankrotationexample.game.GameWorld;
 import tankrotationexample.game.Sound;
-import tankrotationexample.menus.StartMenuPanel;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Resources {
 
@@ -26,6 +22,17 @@ public class Resources {
                         .getClassLoader()
                         .getResource(path)));
     }
+
+//    private static Sound loadSound(String path) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+//        AudioInputStream as = AudioSystem.getAudioInputStream(
+//                Objects.requireNonNull(Resources.class.getClassLoader().getResource(path)));
+//        Clip clip = null;
+//        clip = AudioSystem.getClip();
+//        clip.open(as);
+//        Sound s = new Sound(clip);
+//        //s.setVolumeOfClip(2f);
+//        return s;
+//    }
 
 
     private static void initSprites() {
@@ -50,9 +57,9 @@ public class Resources {
     }
 
     private static void initSounds() {
-    AudioInputStream audioStream;
-    Clip c;
-    Sound s;
+        AudioInputStream audioStream;
+        Clip c;
+        Sound s;
 
         try {
             audioStream = AudioSystem.getAudioInputStream(
@@ -97,7 +104,27 @@ public class Resources {
     }
 
     private static void initAnimations() {
-
+        try {
+            String base = "animations/bullet/expl_08_%04d.png";
+            List<BufferedImage> temp = new ArrayList<>();
+            for (int i = 0; i < 32; i++) {
+                String fName = String.format(base, i);
+                temp.add(loadSprite(fName));
+            }
+            Resources.animations.put("shoot", temp);
+            base = "animations/nuke/expl_01_%04d.png";
+            temp = new ArrayList<>();
+            for (int i = 0; i < 24; i++) {
+                String fName = String.format(base, i);
+                temp.add(loadSprite(fName));
+            }
+            Resources.animations.put("collide", temp);
+            System.out.println();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(e);
+            System.exit(-3);
+        }
     }
 
     public static void loadResources() {
@@ -107,7 +134,7 @@ public class Resources {
     }
 
     public static BufferedImage getSprite(String key) {
-        if(!Resources.sprites.containsKey(key)) {
+        if (!Resources.sprites.containsKey(key)) {
             System.out.println(key + " resource not found");
             System.exit(-2);
         }
@@ -115,11 +142,18 @@ public class Resources {
     }
 
     public static Sound getSound(String key) {
-        if(!Resources.sounds.containsKey(key)) {
+        if (!Resources.sounds.containsKey(key)) {
             System.out.println(key + " sound not found");
             System.exit(-2);
         }
         return Resources.sounds.get(key);
     }
 
+    public static List<BufferedImage> getAnimation(String key) {
+        if (!Resources.animations.containsKey(key)) {
+            System.out.println(key + " sound not found");
+            System.exit(-2);
+        }
+        return Resources.animations.get(key);
+    }
 }
