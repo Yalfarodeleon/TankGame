@@ -23,6 +23,8 @@ public class Tank extends GameObject{
 
     private long coolDown = 250;
     private long timeLastShot = 0;
+    private int live = 3;
+    private int health = 100;
 
     private float R = 5; // affects the speed of the tank
     private float ROTATIONSPEED = 3.0f;
@@ -213,7 +215,20 @@ public class Tank extends GameObject{
         g2d.drawImage(this.img, rotation, null);
         g2d.setColor(Color.RED);
         g2d.drawRect((int)x,(int)y,this.img.getWidth(), this.img.getHeight());
-        this.ammo.forEach(bullet -> bullet.drawImage(g));
+        g2d.setColor(Color.GREEN);
+        g2d.drawRect((int)x,(int)y-20,100,15);
+       g2d.fillRect((int)x,(int)y-20,this.health,15);
+
+       g2d.drawOval((int)x,(int)y+65,10,10);
+       g2d.fillOval((int)x,(int)y+65,10,10);
+
+       g2d.drawOval((int)x+15,(int)y+65,10,10);
+       g2d.fillOval((int)x+15,(int)y+65,10,10);
+
+       g2d.drawOval((int)x+30,(int)y+65,10,10);
+       g2d.fillOval((int)x+30,(int)y+65,10,10);
+
+       this.ammo.forEach(bullet -> bullet.drawImage(g));
 
     }
 
