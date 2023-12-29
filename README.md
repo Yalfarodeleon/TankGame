@@ -4,7 +4,7 @@
 | Student Information |                                 |
 |:-------------------:|---------------------------------|
 |  Student Name       |   Ysidro Alfaro De Leon         |
-|  Student Email      |   yalfarodeleon@mail.sfsu.edu   |
+|  Student Email      |   yalfarodeleon@sfsu.edu   |
 
 ## src Folder Purpose 
 src folder is to be used to store source code only.
